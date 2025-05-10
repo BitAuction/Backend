@@ -28,4 +28,16 @@ export class AuctionService {
       throw error;
     }
   }
+
+  async getAuctionDetails(org: string, userId: string, auctionID: string) {
+    const { contract, gateway } = await this.fabricService.getContract(org, userId);
+    try {
+      let result = await contract.evaluateTransaction('QueryAuction', auctionID);
+      gateway.disconnect();
+      return { auction: JSON.parse(result.toString()) };
+    } catch (error) {
+      gateway.disconnect();
+      throw error;
+    }
+  }
 } 

@@ -20,4 +20,13 @@ export class AuctionController {
   ) {
     return this.auctionService.getAllAuctionsByUser(org, userId);
   }
+
+  @Get('details')
+  async getAuctionDetails(
+    @Query('org') org: string,
+    @Query('userId') userId: string,
+    @Query('auctionID') auctionID: string,
+  ) {
+    return this.auctionService.getAuctionDetails(org, userId, auctionID);
+  }
 }
