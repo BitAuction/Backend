@@ -106,4 +106,13 @@ export class FabricService {
     const contract = network.getContract(chaincodeName);
     return { contract, gateway };
   }
+
+  getOrgMSP(org: string): string {
+    if (!this.orgs) throw new Error('Orgs not initialized');
+    const orgKey = Object.keys(this.orgs).find(
+      (key) => key.toLowerCase() === org.toLowerCase()
+    );
+    if (!orgKey) throw new Error('Invalid org. Must be Org1, Org2, Org3, or Org4');
+    return this.orgs[orgKey].msp;
+  }
 } 
