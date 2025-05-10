@@ -20,18 +20,6 @@ export class SellerService {
     return { auction: JSON.parse(result.toString()) };
   }
 
-  async getAllAuctionsBySeller(org: string, userId: string) {
-    const { contract, gateway } = await this.fabricService.getContract(org, userId);
-    try {
-      let result = await contract.evaluateTransaction('GetAllAuctionsBySeller', userId);
-      gateway.disconnect();
-      return { auctions: JSON.parse(result.toString()) };
-    } catch (error) {
-      gateway.disconnect();
-      throw error;
-    }
-  }
-
   // async endAuction(org: string, userId: string, auctionID: string) {
   //   const { contract, gateway } = await this.fabricService.getContract(org, userId);
   //   let auctionString = await contract.evaluateTransaction('QueryAuction', auctionID);

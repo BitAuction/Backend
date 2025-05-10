@@ -10,11 +10,6 @@ export class SellerController {
     return this.sellerService.createAuction(body.org, body.userId, body.auctionID, body.item, body.timelimit, body.description, body.pictureUrl);
   }
 
-  @Get('auctions-by-seller')
-  async getAllAuctionsBySeller(@Query('org') org: string, @Query('userId') userId: string) {
-    return this.sellerService.getAllAuctionsBySeller(org, userId);
-  }
-
   // @Post('end-auction')
   // async endAuction(@Body() body: { org: string; userId: string; auctionID: string }) {
   //   return this.sellerService.endAuction(body.org, body.userId, body.auctionID);
