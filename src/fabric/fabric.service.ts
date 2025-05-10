@@ -88,4 +88,22 @@ export class FabricService {
     );
     return { message: `User ${userId} enrolled for ${orgKey}` };
   }
+
+  async getContract(org: string, userId: string, channelName = 'mychannel', chaincodeName = 'auction') {
+    await this.init();
+    const { Gateway } = await import('fabric-network');
+    // Org MSP and CA config
+    const orgKey = Object.keys(this.orgs).find(
+      (key) => key.toLowerCase() === org.toLowerCase()
+    );
+    if (!orgKey) throw new Error('Invalid org. Must be Org1, Org2, Org3, or Org4');
+    const orgConfig = this.orgs[orgKey];
+    const ccp = orgConfig.buildCCP();
+    const wallet = await this.AppUtil.buildWallet(this.Wallets, orgConfig.walletPath);
+    const gateway = new Gateway();
+    await gateway.connect(ccp, { wallet, identity: userId, discovery: { enabled: true, asLocalhost: true } });
+    const network = await gateway.getNetwork(channelName);
+    const contract = network.getContract(chaincodeName);
+    return { contract, gateway };
+  }
 } 
