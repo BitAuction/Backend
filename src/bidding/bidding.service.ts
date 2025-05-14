@@ -6,7 +6,10 @@ export class BiddingService {
   constructor(private readonly fabricService: FabricService) {}
 
   async bid(org: string, userId: string, auctionID: string, price: number) {
-    const { contract, gateway } = await this.fabricService.getContract(org, userId);
+    const { contract, gateway } = await this.fabricService.getContract(
+      org,
+      userId,
+    );
     const { contract: timerorcleContract, gateway: timerorcleGateway } =
       await this.fabricService.getContract(
         org,
@@ -48,7 +51,7 @@ export class BiddingService {
 
       let auctionAfterSubmittingBid = JSON.parse(result.toString());
       gateway.disconnect();
-      console.log('Auction After submitting: ', auctionAfterSubmittingBid.bids);
+      // console.log('Auction After submitting: ', auctionAfterSubmittingBid.bids);
       return { bids: auctionAfterSubmittingBid.bids };
     } catch (error) {
       gateway.disconnect();

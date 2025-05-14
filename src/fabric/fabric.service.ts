@@ -126,4 +126,4 @@ export class FabricService implements OnModuleInit {
     if (!orgKey) throw new Error('Invalid org. Must be Org1, Org2, Org3, or Org4');
     return this.orgs[orgKey].msp;
   }
-} 
+}
