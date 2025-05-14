@@ -17,7 +17,6 @@ export class SellerService {
     await statefulTxn.submit(auctionID, item, timelimit, description || '', pictureUrl || '');
     let result = await contract.evaluateTransaction('QueryAuction', auctionID);
     gateway.disconnect();
-    console.log("HELLO WORLD")
     return { auction: JSON.parse(result.toString()) };
   }
 
