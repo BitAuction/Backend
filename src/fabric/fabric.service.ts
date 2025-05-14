@@ -13,6 +13,7 @@ export class FabricService {
 
   private async init() {
     if (this.initialized) return;
+    // https://www.npmjs.com/package/fabric-network
     this.Wallets = (await import('fabric-network')).Wallets;
     this.CAUtil = await import('../../../../../test-application/javascript/CAUtil.js');
     this.AppUtil = await import('../../../../../test-application/javascript/AppUtil.js');

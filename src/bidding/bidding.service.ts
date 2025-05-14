@@ -8,10 +8,12 @@ export class BiddingService {
 
   async bid(org: string, userId: string, auctionID: string, price: number) {
     const { contract, gateway } = await this.fabricService.getContract(org, userId);
-    const orgMSP = this.fabricService.getOrgMSP(org);
+    // const orgMSP = this.fabricService.getOrgMSP(org);
     try {
       // Submit a public bid
-      await contract.submitTransaction('SubmitBid', auctionID, price.toString());
+      const txID = await contract.submitTransaction('Bid', auctionID, price.toString());
+      await contract.submitTransaction('SubmitBid', auctionID, txID.toString());
+
       // Fetch updated auction to get all bids
       let result = await contract.evaluateTransaction('QueryAuction', auctionID);
       let auction = JSON.parse(result.toString());
@@ -47,4 +49,4 @@ export class BiddingService {
       throw error;
     }
   }
-} 
+}
