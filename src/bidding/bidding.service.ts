@@ -6,10 +6,7 @@ export class BiddingService {
   constructor(private readonly fabricService: FabricService) {}
 
   async bid(org: string, userId: string, auctionID: string, price: number) {
-    const { contract, gateway } = await this.fabricService.getContract(
-      org,
-      userId,
-    );
+    const { contract, gateway } = await this.fabricService.getContract(org, userId);
     const { contract: timerorcleContract, gateway: timerorcleGateway } =
       await this.fabricService.getContract(
         org,
@@ -17,7 +14,6 @@ export class BiddingService {
         undefined,
         'timeoracle',
       );
-    // const orgMSP = this.fabricService.getOrgMSP(org);
     try {
       // First get the auction to check its organizations
       let auctionResult = await contract.evaluateTransaction(
@@ -32,7 +28,6 @@ export class BiddingService {
         price.toString(),
       );
 
-      console.log(`\n--> Invoking Time Oracle with bidID: ${txID}`);
       const timeResponse = await timerorcleContract.submitTransaction(
         'GetTimeNtp',
         txID.toString(),
