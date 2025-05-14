@@ -6,17 +6,39 @@ export class BiddingController {
   constructor(private readonly biddingService: BiddingService) {}
 
   @Post('bid')
-  async bid(@Body() body: { org: string; userId: string; auctionID: string; price: number }) {
-    return this.biddingService.bid(body.org, body.userId, body.auctionID, body.price);
+  async bid(
+    @Body()
+    body: {
+      org: string;
+      userId: string;
+      auctionID: string;
+      price: number;
+    },
+  ) {
+    return this.biddingService.bid(
+      body.org,
+      body.userId,
+      body.auctionID,
+      body.price,
+    );
   }
 
   @Get('bids')
-  async getAllBids(@Query('org') org: string, @Query('userId') userId: string, @Query('auctionID') auctionID: string) {
+  async getAllBids(
+    @Query('org') org: string,
+    @Query('userId') userId: string,
+    @Query('auctionID') auctionID: string,
+  ) {
     return this.biddingService.getAllBids(org, userId, auctionID);
   }
 
   @Get('highest-bid')
-  async getHighestBid(@Query('org') org: string, @Query('userId') userId: string, @Query('auctionID') auctionID: string) {
+  async getHighestBid(
+    @Query('org') org: string,
+    @Query('userId') userId: string,
+    @Query('auctionID') auctionID: string,
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this.biddingService.getHighestBid(org, userId, auctionID);
   }
-} 
+}

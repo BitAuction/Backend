@@ -5,6 +5,6 @@ import { FabricService } from 'src/fabric/fabric.service';
 
 @Module({
   controllers: [SellerController],
-  providers: [SellerService, FabricService]
+  providers: [SellerService, FabricService],
 })
 export class SellerModule {}

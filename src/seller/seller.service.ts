@@ -20,17 +20,17 @@ export class SellerService {
     return { auction: JSON.parse(result.toString()) };
   }
 
-  // async endAuction(org: string, userId: string, auctionID: string) {
-  //   const { contract, gateway } = await this.fabricService.getContract(org, userId);
-  //   let auctionString = await contract.evaluateTransaction('QueryAuction', auctionID);
-  //   let auctionJSON = JSON.parse(auctionString.toString());
-  //   let statefulTxn = contract.createTransaction('EndAuction');
-  //   statefulTxn.setEndorsingOrganizations(...auctionJSON.organizations);
-  //   await statefulTxn.submit(auctionID);
-  //   let result = await contract.evaluateTransaction('QueryAuction', auctionID);
-  //   gateway.disconnect();
-  //   return { auction: JSON.parse(result.toString()) };
-  // }
+  async endAuction(org: string, userId: string, auctionID: string) {
+    const { contract, gateway } = await this.fabricService.getContract(org, userId);
+    let auctionString = await contract.evaluateTransaction('QueryAuction', auctionID);
+    let auctionJSON = JSON.parse(auctionString.toString());
+    let statefulTxn = contract.createTransaction('EndAuction');
+    statefulTxn.setEndorsingOrganizations(...auctionJSON.organizations);
+    await statefulTxn.submit(auctionID);
+    let result = await contract.evaluateTransaction('QueryAuction', auctionID);
+    gateway.disconnect();
+    return { auction: JSON.parse(result.toString()) };
+  }
 
   // async viewAuction(org: string, userId: string, auctionID: string) {
   //   const { contract, gateway } = await this.fabricService.getContract(org, userId);

@@ -1,15 +1,10 @@
 import { Module } from '@nestjs/common';
-import { RegisterationModule } from './registeration/registeration.module';
+import { RegistrationModule } from './registration/registration.module';
 import { SellerModule } from './seller/seller.module';
 import { BiddingModule } from './bidding/bidding.module';
 import { AuctionModule } from './auction/auction.module';
 
 @Module({
-  imports: [
-    AuctionModule,
-    RegisterationModule,
-    SellerModule,
-    BiddingModule,
-  ],
+  imports: [AuctionModule, RegistrationModule, SellerModule, BiddingModule],
 })
 export class AppModule {}
