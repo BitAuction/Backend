@@ -4,7 +4,6 @@ import { BidMonitorService } from './bid-monitor.service';
 import { BiddingModule } from '../bidding/bidding.module';
 import { AuctionModule } from '../auction/auction.module';
 import { RedisModule } from '../redis/redis.module';
-import { SimulationModule } from '../simulation/simulation.module';
 
 @Module({
   imports: [
@@ -12,7 +11,6 @@ import { SimulationModule } from '../simulation/simulation.module';
     BiddingModule,
     AuctionModule,
     RedisModule,
-    SimulationModule,
   ],
   providers: [BidMonitorService],
   exports: [BidMonitorService],
