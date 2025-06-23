@@ -15,7 +15,6 @@ export class BiddingService {
         'timeoracle',
       );
     try {
-      // First get the auction to check its organizations
       let auctionResult = await contract.evaluateTransaction(
         'QueryAuction',
         auctionID,
@@ -31,11 +30,6 @@ export class BiddingService {
       const timeResponse = await timerorcleContract.submitTransaction(
         'GetTimeNtp',
         txID.toString(),
-      );
-
-      console.log(
-        '*** Time Oracle committed with response:',
-        timeResponse.toString(),
       );
 
       // Create a transaction for SubmitBid

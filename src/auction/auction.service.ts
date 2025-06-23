@@ -20,8 +20,6 @@ export class AuctionService {
   async getAllAuctionsByUser(org: string, userId: string) {
     const { contract, gateway } = await this.fabricService.getContract(org, userId);
     try {
-      // For this function to work we need to pass full identity string from NestJS
-      // const sellerId = `x509::CN=${userId},OU=client::CN=ca.org4.example.com,O=org4.example.com,L=Durham,ST=North Carolina,C=US`;
       let result = await contract.evaluateTransaction('GetAllAuctionsBySeller', userId);
       gateway.disconnect();
       return { auctions: JSON.parse(result.toString()) };

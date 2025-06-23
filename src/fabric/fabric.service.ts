@@ -1,18 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { join } from 'path';
 
 @Injectable()
-export class FabricService {
+export class FabricService implements OnModuleInit {
   private Wallets: any;
   private CAUtil: any;
   private AppUtil: any;
   private FabricCAServices: any;
-  private initialized = false;
-
   private orgs: any;
 
-  private async init() {
-    if (this.initialized) return;
+  async onModuleInit() {
     // https://www.npmjs.com/package/fabric-network
     this.Wallets = (await import('fabric-network')).Wallets;
     this.CAUtil = await import('../../../../../test-application/javascript/CAUtil.js');
@@ -48,12 +45,33 @@ export class FabricService {
         walletPath: join(__dirname, '../../wallet/org4'),
         affiliation: 'org4.department4',
       },
-    };
-    this.initialized = true;
+    }; 
+  }
+
+  async enrollAdminForOrg(org: string) {
+    const orgKey = Object.keys(this.orgs).find(
+      (key) => key.toLowerCase() === org.toLowerCase()
+    );
+    if (!orgKey) {
+      throw new Error('Invalid org. Must be Org1, Org2, Org3, or Org4');
+    }
+    const orgConfig = this.orgs[orgKey];
+    const ccp = orgConfig.buildCCP();
+    const caClient = this.CAUtil.buildCAClient(
+      this.FabricCAServices,
+      ccp,
+      orgConfig.caName
+    );
+    const wallet = await this.AppUtil.buildWallet(this.Wallets, orgConfig.walletPath);
+
+    await this.CAUtil.enrollAdmin(
+      caClient,
+      wallet,
+      orgConfig.msp
+    );
   }
 
   async login(org: string, userId: string) {
-    await this.init();
     // Org MSP and CA config
     const orgKey = Object.keys(this.orgs).find(
       (key) => key.toLowerCase() === org.toLowerCase()
@@ -72,13 +90,6 @@ export class FabricService {
     );
     const wallet = await this.AppUtil.buildWallet(this.Wallets, orgConfig.walletPath);
 
-    // Enroll admin if not already enrolled
-    await this.CAUtil.enrollAdmin(
-      caClient,
-      wallet,
-      orgConfig.msp
-    );
-
     // Register and enroll user
     await this.CAUtil.registerAndEnrollUser(
       caClient,
@@ -91,7 +102,6 @@ export class FabricService {
   }
 
   async getContract(org: string, userId: string, channelName = 'mychannel', chaincodeName = 'auction') {
-    await this.init();
     const { Gateway } = await import('fabric-network');
     // Org MSP and CA config
     const orgKey = Object.keys(this.orgs).find(
