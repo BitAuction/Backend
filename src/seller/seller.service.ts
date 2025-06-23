@@ -1,7 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { FabricService } from '../fabric/fabric.service';
-import { AuctionGateway } from 'src/auction/auction.gateway';
+import { NotificationGateway } from 'src/notification/notification.gateway';
 import { Cron } from '@nestjs/schedule';
+import { NotificationService } from 'src/notification/notification.service';
+import { extractUserId } from 'src/utils/utils';
+import { AuctionService } from 'src/auction/auction.service';
 
 export interface AuctionPayload {
   auction: unknown;
@@ -16,8 +19,12 @@ export interface AuctionDetails {
 export class SellerService {
   constructor(
     private readonly fabricService: FabricService,
-    private readonly auctionGateway: AuctionGateway,
+    private readonly notificationGateway: NotificationGateway,
+    private readonly notificationService: NotificationService,
+    private readonly auctionService: AuctionService,
   ) {}
+
+  private readonly logger = new Logger(SellerService.name);
 
   async createAuction(
     org: string,
@@ -35,7 +42,7 @@ export class SellerService {
     const statefulTxn = contract.createTransaction('CreateAuction');
     if (!timelimit) {
       const now = new Date();
-      const after30Seconds = new Date(now.getTime() + 30 * 1000); // 30 seconds in ms
+      const after30Seconds = new Date(now.getTime() + 200 * 1000); // 100 seconds in ms
       timelimit = after30Seconds.toISOString();
     }
 
@@ -71,44 +78,81 @@ export class SellerService {
       'QueryAuction',
       auctionID,
     );
+    // Send notification to auction winner
     const endedAuction = JSON.parse(result.toString()) as AuctionDetails;
-    const winnerId = this.extractUserId(endedAuction.winner);
+    const winnerId = extractUserId(endedAuction.winner);
     if (winnerId) {
-      this.auctionGateway.notifyWinner(winnerId, auctionID);
+      const notification = await this.notificationService.createNotification(
+        winnerId,
+        auctionID,
+        'winner',
+      );
+      this.notificationGateway.notifyWinner(
+        notification.id,
+        winnerId,
+        auctionID,
+      );
     }
     gateway.disconnect();
     return JSON.parse(result.toString()) as AuctionPayload;
   }
 
-  private extractUserId(x509Identity: string): string | null {
-    if (!x509Identity) {
-      return null;
-    }
-    // Extracts the Common Name (CN) from the X.509 string
-    const match = x509Identity.match(/CN=([^,]+)/);
-    return match ? match[1] : null;
-  }
-
-  // runs at minute 0 of every hour
-  @Cron('0 * * * *')
-  checkAuctionTimeouts() {
+  @Cron('* * * * *') // every 1 minute
+  async checkAuctionTimeouts() {
     // TODO: Add db support
-    const auctions = [
-      {
-        id: 'auction1',
-        sellerId: 'seller_001',
-        timelimit: new Date().toISOString(),
-        status: 'open',
-      },
-    ];
-    console.log('HELLO WORLD');
-    const now = new Date().toISOString();
-    for (const auction of auctions) {
-      if (auction.status === 'open' && auction.timelimit <= now) {
-        console.log(`[Timeout] Auction ${auction.id} has passed time limit`);
-        this.auctionGateway.notifyTimeout(auction.sellerId, auction.id);
-        auction.status = 'open'; // mark to avoid duplicate notifications
+    try {
+      // Get all open auctions from all organizations (adjust orgs as needed)
+      const organizations = ['Org1', 'Org2', 'Org3', 'Org4'];
+      for (const org of organizations) {
+        try {
+          const result = await this.auctionService.getAllOpenAuctions(
+            org,
+            'admin',
+          );
+          const auctions = result.auctions || [];
+          const now = new Date().toISOString();
+          for (const auction of auctions) {
+            const sellerId = extractUserId(auction.seller) ?? '';
+            const exist = await this.notificationService.notificationExist(
+              auction.auctionID,
+              sellerId,
+              'timeout',
+            ); // avoid duplicate notifications
+            if (
+              auction.status === 'open' &&
+              auction.timelimit < now &&
+              !exist
+            ) {
+              this.logger.log(
+                `[Timeout] Auction ${auction.auctionID} has passed time limit`,
+              );
+              const notification =
+                await this.notificationService.createNotification(
+                  sellerId,
+                  auction.auctionID,
+                  'timeout',
+                );
+              this.notificationGateway.notifyTimeout(
+                notification.id,
+                sellerId,
+                auction.auctionID,
+              );
+            }
+          }
+        } catch (error: unknown) {
+          if (error && typeof error === 'object' && 'message' in error) {
+            this.logger.warn(
+              `Failed to check auctions for org ${org}: ${(error as { message: string }).message}`,
+            );
+          } else {
+            this.logger.warn(
+              `Failed to check auctions for org ${org}: ${String(error)}`,
+            );
+          }
+        }
       }
+    } catch (error) {
+      this.logger.error(`Error checking auctions: ${error}`);
     }
   }
 

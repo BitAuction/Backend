@@ -1,38 +1,44 @@
+import { Logger } from '@nestjs/common';
 import {
   WebSocketGateway,
-  WebSocketServer,
   OnGatewayConnection,
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
+import { Socket } from 'socket.io';
 
 /**
  * This class is a WebSocket gateway built using NestJS and Socket.IO, allowing real-time bidirectional communication between the server and clients (typically browsers).
  * It manages client connections, handles disconnections, and provides methods to notify users about events like auction endings.
  */
 @WebSocketGateway({
-  cors: { origin: '*' }, // TODO: adjust for security
+  cors: {
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3002',
+      'http://localhost:3003',
+    ],
+    credentials: true,
+  }, // TODO: adjust for security
 })
-export class AuctionGateway
+export class NotificationGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  @WebSocketServer()
-  server: Server;
-
+  private readonly logger = new Logger(NotificationGateway.name);
   private clients: Map<string, Socket> = new Map();
 
   handleConnection(client: Socket) {
     const userId = client.handshake.query.userId as string;
     if (userId) {
       this.clients.set(userId, client);
-      console.log(`Client connected: ${userId}`);
+      this.logger.log(`Client connected: ${userId}`);
     }
   }
 
   handleDisconnect(client: Socket) {
     const userId = client.handshake.query.userId as string;
     this.clients.delete(userId);
-    console.log(`Client disconnected: ${userId}`);
+    this.logger.log(`Client disconnected: ${userId}`);
   }
 
   notifyUser(userId: string, event: string, data: any) {
@@ -43,18 +49,20 @@ export class AuctionGateway
   }
 
   // Call this method when an auction ends
-  notifyWinner(userId: string, auctionId: string) {
+  notifyWinner(notificationId: number, userId: string, auctionId: string) {
     this.notifyUser(userId, 'auction-ended', {
+      notificationId,
       auctionId,
       type: 'winner',
     });
   }
 
-  notifyTimeout(sellerId: string, auctionId: string) {
-    this.server.emit('auction-timeout', {
+  // Call this method when an auction timeout
+  notifyTimeout(notificationId: number, sellerId: string, auctionId: string) {
+    this.notifyUser(sellerId, 'auction-timeout', {
+      notificationId,
       auctionId,
       type: 'timeout',
-      userId: sellerId,
     });
   }
 }
