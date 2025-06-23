@@ -8,4 +8,4 @@ import { FabricService } from '../fabric/fabric.service';
   providers: [AuctionService, FabricService],
   exports: [AuctionService],
 })
-export class AuctionModule {} 
+export class AuctionModule {}

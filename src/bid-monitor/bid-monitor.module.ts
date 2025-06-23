@@ -15,4 +15,4 @@ import { RedisModule } from '../redis/redis.module';
   providers: [BidMonitorService],
   exports: [BidMonitorService],
 })
-export class BidMonitorModule {} 
+export class BidMonitorModule {}

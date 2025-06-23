@@ -26,8 +26,7 @@ export class BidMonitorService {
 
     this.schedulerRegistry.addCronJob('bid-monitor', job);
     job.start();
-    console.log('Bid monitoring job started');
-    // this.logger.log('Bid monitoring started');
+    this.logger.log('Bid monitoring started');
   }
 
   async stopMonitoring() {
@@ -45,13 +44,19 @@ export class BidMonitorService {
       const organizations = ['Org1', 'Org2', 'Org3', 'Org4'];
       for (const org of organizations) {
         try {
-          const result = await this.auctionService.getAllOpenAuctions(org, 'admin');
+          const result = await this.auctionService.getAllOpenAuctions(
+            org,
+            'admin',
+          );
           const auctions = result.auctions || [];
           for (const auction of auctions) {
             await this.checkAuctionBids(org, auction.auctionID);
           }
         } catch (error) {
-          this.logger.warn(`Failed to check auctions for org ${org}:`, error.message);
+          this.logger.warn(
+            `Failed to check auctions for org ${org}:`,
+            error.message,
+          );
         }
       }
     } catch (error) {
@@ -61,11 +66,21 @@ export class BidMonitorService {
 
   private async checkAuctionBids(org: string, auctionId: string) {
     try {
-      const currentHighestBid = await this.biddingService.getHighestBid(org, 'admin', auctionId);
+      const currentHighestBid = await this.biddingService.getHighestBid(
+        org,
+        'admin',
+        auctionId,
+      );
       const lastBid = this.lastHighestBids.get(auctionId);
-      console.log(`Current highest bid for auction ${auctionId}:`, currentHighestBid);
+      console.log(
+        `Current highest bid for auction ${auctionId}:`,
+        currentHighestBid,
+      );
       console.log(`Last highest bid for auction ${auctionId}:`, lastBid);
-      if (!lastBid || (currentHighestBid && (lastBid.price < currentHighestBid.price))) {
+      if (
+        !lastBid ||
+        (currentHighestBid && lastBid.price < currentHighestBid.price)
+      ) {
         if (currentHighestBid) {
           this.lastHighestBids.set(auctionId, currentHighestBid);
           await this.redisService.publishBidUpdate(auctionId, {
@@ -77,7 +92,10 @@ export class BidMonitorService {
         }
       }
     } catch (error) {
-      this.logger.warn(`Failed to check bids for auction ${auctionId}:`, error.message);
+      this.logger.warn(
+        `Failed to check bids for auction ${auctionId}:`,
+        error.message,
+      );
     }
   }
 
@@ -91,4 +109,4 @@ export class BidMonitorService {
     this.lastHighestBids.delete(auctionId);
     this.logger.log(`Removed auction ${auctionId} from monitoring`);
   }
-} 
+}

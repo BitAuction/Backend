@@ -48,6 +48,7 @@ export class BiddingService {
 
       let auctionAfterSubmittingBid = JSON.parse(result.toString());
       gateway.disconnect();
+      console.log('Auction After submitting: ', auctionAfterSubmittingBid.bids);
       return { bids: auctionAfterSubmittingBid.bids };
     } catch (error) {
       gateway.disconnect();
