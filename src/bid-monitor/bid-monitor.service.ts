@@ -26,8 +26,8 @@ export class BidMonitorService {
 
     this.schedulerRegistry.addCronJob('bid-monitor', job);
     job.start();
-
-    this.logger.log('Bid monitoring started');
+    console.log('Bid monitoring job started');
+    // this.logger.log('Bid monitoring started');
   }
 
   async stopMonitoring() {
@@ -42,7 +42,7 @@ export class BidMonitorService {
   private async checkAllAuctions() {
     try {
       // Get all open auctions from all organizations (adjust orgs as needed)
-      const organizations = ['org1', 'org2', 'org3', 'org4'];
+      const organizations = ['Org1', 'Org2', 'Org3', 'Org4'];
       for (const org of organizations) {
         try {
           const result = await this.auctionService.getAllOpenAuctions(org, 'admin');
@@ -63,12 +63,10 @@ export class BidMonitorService {
     try {
       const currentHighestBid = await this.biddingService.getHighestBid(org, 'admin', auctionId);
       const lastBid = this.lastHighestBids.get(auctionId);
-      if (!lastBid || (currentHighestBid && (
-        lastBid.price !== currentHighestBid.price ||
-        lastBid.bidder !== currentHighestBid.bidder
-      ))) {
+      console.log(`Current highest bid for auction ${auctionId}:`, currentHighestBid);
+      console.log(`Last highest bid for auction ${auctionId}:`, lastBid);
+      if (!lastBid || (currentHighestBid && (lastBid.price < currentHighestBid.price))) {
         if (currentHighestBid) {
-          this.logger.log(`New highest bid for auction ${auctionId}: ${currentHighestBid.price} by ${currentHighestBid.bidder}`);
           this.lastHighestBids.set(auctionId, currentHighestBid);
           await this.redisService.publishBidUpdate(auctionId, {
             type: 'highest_bid_update',

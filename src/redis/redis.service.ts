@@ -35,7 +35,6 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   async subscribeToBidUpdates(auctionId: string, callback: (data: any) => void) {
     const channel = `auction:${auctionId}:bids`;
-    
     await this.subscriber.subscribe(channel, (message) => {
       try {
         const data = JSON.parse(message);
