@@ -1,0 +1,24 @@
+{
+  "auctionID": "Auction1234",
+  "objectType": "auction",
+  "item": "Silver Ring",
+  "seller": "x509::CN=seller_001,OU=client::CN=ca.org4.example.com,O=org4.example.com,L=Durham,ST=North Carolina,C=US",
+  "organizations": ["Org4MSP"],
+  "winner": "x509::CN=bidder_01,OU=client::CN=ca.org1.example.com,O=org1.example.com,L=Durham,ST=North Carolina,C=US",
+  "price": 100,
+  "status": "ended",
+  
+  "timelimit": "2025-06-22T21:01:38.855Z",
+  "description": "Silver Ring",
+  "pictureUrl": "https://media.istockphoto.com/id/814423752/photo/eye-of-model-with-colorful-art-make-up-close-up.jpg?s=1024x1024\u0026w=is\u0026k=20\u0026c=NQtm4v1Uzp2luv-6f3qORcq9pDtz2H56p8g9Xix8cY0=",
+  "bids": [
+    {
+      "objectType": "bid",
+      "price": 100,
+      "org": "Org1MSP",
+      "bidder": "x509::CN=bidder_01,OU=client::CN=ca.org1.example.com,O=org1.example.com,L=Durham,ST=North Carolina,C=US",
+      "valid": true,
+      "timestamp": "2025-06-22T21:14:02.635806748Z"
+    }
+  ]
+}

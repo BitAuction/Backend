@@ -7,8 +7,6 @@ export class RegistrationController {
 
   @Post('login')
   async login(@Body() body: { org: string; userId: string }) {
-    console.log('Login ---------------------------------------');
-    console.log(body);
     return this.registrationService.login(body.org, body.userId);
   }
 }

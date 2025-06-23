@@ -40,4 +40,4 @@ export class AuctionService {
       throw error;
     }
   }
-} 
+}

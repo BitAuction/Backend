@@ -6,8 +6,12 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+/**
+ * This class is a WebSocket gateway built using NestJS and Socket.IO, allowing real-time bidirectional communication between the server and clients (typically browsers).
+ * It manages client connections, handles disconnections, and provides methods to notify users about events like auction endings.
+ */
 @WebSocketGateway({
-  cors: { origin: '*' },
+  cors: { origin: '*' }, // TODO: adjust for security
 })
 export class AuctionGateway
   implements OnGatewayConnection, OnGatewayDisconnect
@@ -31,14 +35,26 @@ export class AuctionGateway
     console.log(`Client disconnected: ${userId}`);
   }
 
-  // Call this method when an auction ends
-  notifyWinner(userId: string, auctionId: string) {
+  notifyUser(userId: string, event: string, data: any) {
     const client = this.clients.get(userId);
     if (client) {
-      client.emit('auction-ended', {
-        message: `🎉 You won the auction ${auctionId}!`,
-        auctionId,
-      });
+      client.emit(event, data);
     }
+  }
+
+  // Call this method when an auction ends
+  notifyWinner(userId: string, auctionId: string) {
+    this.notifyUser(userId, 'auction-ended', {
+      auctionId,
+      type: 'winner',
+    });
+  }
+
+  notifyTimeout(sellerId: string, auctionId: string) {
+    this.server.emit('auction-timeout', {
+      auctionId,
+      type: 'timeout',
+      userId: sellerId,
+    });
   }
 }
