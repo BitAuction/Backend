@@ -12,8 +12,12 @@ export class FabricService implements OnModuleInit {
   async onModuleInit() {
     // https://www.npmjs.com/package/fabric-network
     this.Wallets = (await import('fabric-network')).Wallets;
-    this.CAUtil = await import('../../../../../test-application/javascript/CAUtil.js');
-    this.AppUtil = await import('../../../../../test-application/javascript/AppUtil.js');
+    this.CAUtil = await import(
+      '../../../../../test-application/javascript/CAUtil.js'
+    );
+    this.AppUtil = await import(
+      '../../../../../test-application/javascript/AppUtil.js'
+    );
     this.FabricCAServices = require('fabric-ca-client');
 
     this.orgs = {
@@ -45,12 +49,12 @@ export class FabricService implements OnModuleInit {
         walletPath: join(__dirname, '../../wallet/org4'),
         affiliation: 'org4.department4',
       },
-    }; 
+    };
   }
 
   async enrollAdminForOrg(org: string) {
     const orgKey = Object.keys(this.orgs).find(
-      (key) => key.toLowerCase() === org.toLowerCase()
+      (key) => key.toLowerCase() === org.toLowerCase(),
     );
     if (!orgKey) {
       throw new Error('Invalid org. Must be Org1, Org2, Org3, or Org4');
@@ -60,21 +64,20 @@ export class FabricService implements OnModuleInit {
     const caClient = this.CAUtil.buildCAClient(
       this.FabricCAServices,
       ccp,
-      orgConfig.caName
+      orgConfig.caName,
     );
-    const wallet = await this.AppUtil.buildWallet(this.Wallets, orgConfig.walletPath);
+    const wallet = await this.AppUtil.buildWallet(
+      this.Wallets,
+      orgConfig.walletPath,
+    );
 
-    await this.CAUtil.enrollAdmin(
-      caClient,
-      wallet,
-      orgConfig.msp
-    );
+    await this.CAUtil.enrollAdmin(caClient, wallet, orgConfig.msp);
   }
 
   async login(org: string, userId: string) {
     // Org MSP and CA config
     const orgKey = Object.keys(this.orgs).find(
-      (key) => key.toLowerCase() === org.toLowerCase()
+      (key) => key.toLowerCase() === org.toLowerCase(),
     );
     if (!orgKey) {
       throw new Error('Invalid org. Must be Org1, Org2, Org3, or Org4');
@@ -86,9 +89,18 @@ export class FabricService implements OnModuleInit {
     const caClient = this.CAUtil.buildCAClient(
       this.FabricCAServices,
       ccp,
-      orgConfig.caName
+      orgConfig.caName,
     );
-    const wallet = await this.AppUtil.buildWallet(this.Wallets, orgConfig.walletPath);
+    const wallet = await this.AppUtil.buildWallet(
+      this.Wallets,
+      orgConfig.walletPath,
+    );
+
+    // Check if user identity already exists in the wallet
+    const identity = await wallet.get(userId);
+    if (identity) {
+      return { message: `User ${userId} is already logged in.` };
+    }
 
     // Register and enroll user
     await this.CAUtil.registerAndEnrollUser(
@@ -96,23 +108,37 @@ export class FabricService implements OnModuleInit {
       wallet,
       orgConfig.msp,
       userId,
-      orgConfig.affiliation
+      orgConfig.affiliation,
     );
+
     return { message: `User ${userId} enrolled for ${orgKey}` };
   }
 
-  async getContract(org: string, userId: string, channelName = 'mychannel', chaincodeName = 'auction') {
+  async getContract(
+    org: string,
+    userId: string,
+    channelName = 'mychannel',
+    chaincodeName = 'auction',
+  ) {
     const { Gateway } = await import('fabric-network');
     // Org MSP and CA config
     const orgKey = Object.keys(this.orgs).find(
-      (key) => key.toLowerCase() === org.toLowerCase()
+      (key) => key.toLowerCase() === org.toLowerCase(),
     );
-    if (!orgKey) throw new Error('Invalid org. Must be Org1, Org2, Org3, or Org4');
+    if (!orgKey)
+      throw new Error('Invalid org. Must be Org1, Org2, Org3, or Org4');
     const orgConfig = this.orgs[orgKey];
     const ccp = orgConfig.buildCCP();
-    const wallet = await this.AppUtil.buildWallet(this.Wallets, orgConfig.walletPath);
+    const wallet = await this.AppUtil.buildWallet(
+      this.Wallets,
+      orgConfig.walletPath,
+    );
     const gateway = new Gateway();
-    await gateway.connect(ccp, { wallet, identity: userId, discovery: { enabled: true, asLocalhost: true } });
+    await gateway.connect(ccp, {
+      wallet,
+      identity: userId,
+      discovery: { enabled: true, asLocalhost: true },
+    });
     const network = await gateway.getNetwork(channelName);
     const contract = network.getContract(chaincodeName);
     return { contract, gateway };
@@ -121,9 +147,10 @@ export class FabricService implements OnModuleInit {
   getOrgMSP(org: string): string {
     if (!this.orgs) throw new Error('Orgs not initialized');
     const orgKey = Object.keys(this.orgs).find(
-      (key) => key.toLowerCase() === org.toLowerCase()
+      (key) => key.toLowerCase() === org.toLowerCase(),
     );
-    if (!orgKey) throw new Error('Invalid org. Must be Org1, Org2, Org3, or Org4');
+    if (!orgKey)
+      throw new Error('Invalid org. Must be Org1, Org2, Org3, or Org4');
     return this.orgs[orgKey].msp;
   }
 }

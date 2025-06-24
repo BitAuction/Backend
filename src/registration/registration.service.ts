@@ -8,4 +8,9 @@ export class RegistrationService {
   async login(org: string, userId: string) {
     return this.fabricService.login(org, userId);
   }
+
+  logout(org: string, userId: string) {
+    // TODO: clear cache/session if exist
+    return { message: `User ${userId} from ${org} logged out` };
+  }
 }

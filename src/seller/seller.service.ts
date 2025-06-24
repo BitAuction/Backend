@@ -42,7 +42,7 @@ export class SellerService {
     const statefulTxn = contract.createTransaction('CreateAuction');
     if (!timelimit) {
       const now = new Date();
-      const after30Seconds = new Date(now.getTime() + 200 * 1000); // 100 seconds in ms
+      const after30Seconds = new Date(now.getTime() + 300 * 1000); // 100 seconds in ms
       timelimit = after30Seconds.toISOString();
     }
 
