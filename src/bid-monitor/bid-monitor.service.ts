@@ -20,13 +20,13 @@ export class BidMonitorService {
 
   async startMonitoring() {
     // Poll every 2 seconds for updates
-    // const job = new CronJob('*/2 * * * * *', () => {
-    //   this.checkAllAuctions();
-    // });
+    const job = new CronJob('*/2 * * * * *', () => {
+      this.checkAllAuctions();
+    });
 
-    // this.schedulerRegistry.addCronJob('bid-monitor', job);
-    // job.start();
-    // this.logger.log('Bid monitoring started');
+    this.schedulerRegistry.addCronJob('bid-monitor', job);
+    job.start();
+    this.logger.log('Bid monitoring started');
   }
 
   async stopMonitoring() {
@@ -93,8 +93,7 @@ export class BidMonitorService {
       }
     } catch (error) {
       this.logger.warn(
-        `Failed to check bids for auction ${auctionId}:`,
-        error.message,
+        `Failed to check bids for auction ${auctionId}: ${error.message}`,
       );
     }
   }
