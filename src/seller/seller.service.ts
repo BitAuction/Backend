@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { FabricService } from '../fabric/fabric.service';
 import { NotificationGateway } from 'src/notification/notification.gateway';
 import { Cron } from '@nestjs/schedule';
@@ -42,7 +42,7 @@ export class SellerService {
     const statefulTxn = contract.createTransaction('CreateAuction');
     if (!timelimit) {
       const now = new Date();
-      const after30Seconds = new Date(now.getTime() + 200 * 1000); // 100 seconds in ms
+      const after30Seconds = new Date(now.getTime() + 300 * 1000); // 100 seconds in ms
       timelimit = after30Seconds.toISOString();
     }
 
@@ -73,7 +73,23 @@ export class SellerService {
     const auctionJSON = JSON.parse(auctionString.toString()) as AuctionDetails;
     const statefulTxn = contract.createTransaction('EndAuction');
     statefulTxn.setEndorsingOrganizations(...auctionJSON.organizations);
-    await statefulTxn.submit(auctionID);
+
+    try {
+      await statefulTxn.submit(auctionID);
+    } catch (err: any) {
+      if (
+        err instanceof Error &&
+        err.message
+          .toLowerCase()
+          .includes('cannot end auction before time limit')
+      ) {
+        throw new BadRequestException(
+          'Cannot end auction before time limit has passed',
+        );
+      }
+      throw err;
+    }
+
     const result = await contract.evaluateTransaction(
       'QueryAuction',
       auctionID,

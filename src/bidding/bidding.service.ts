@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { FabricService } from '../fabric/fabric.service';
+import { Auction } from 'src/auction/auction.service';
 
 @Injectable()
 export class BiddingService {
   constructor(private readonly fabricService: FabricService) {}
 
   async bid(org: string, userId: string, auctionID: string, price: number) {
-    const { contract, gateway } = await this.fabricService.getContract(org, userId);
+    const { contract, gateway } = await this.fabricService.getContract(
+      org,
+      userId,
+    );
     const { contract: timerorcleContract, gateway: timerorcleGateway } =
       await this.fabricService.getContract(
         org,
@@ -48,7 +52,7 @@ export class BiddingService {
 
       let auctionAfterSubmittingBid = JSON.parse(result.toString());
       gateway.disconnect();
-      console.log('Auction After submitting: ', auctionAfterSubmittingBid.bids);
+      // console.log('Auction After submitting: ', auctionAfterSubmittingBid.bids);
       return { bids: auctionAfterSubmittingBid.bids };
     } catch (error) {
       gateway.disconnect();
@@ -62,12 +66,12 @@ export class BiddingService {
       userId,
     );
     try {
-      let result = await contract.evaluateTransaction(
+      const result = await contract.evaluateTransaction(
         'QueryAuction',
         auctionID,
       );
-      let auction = JSON.parse(result.toString());
       gateway.disconnect();
+      const auction = JSON.parse(result.toString()) as Auction;
       return { bids: auction.bids };
     } catch (error) {
       gateway.disconnect();

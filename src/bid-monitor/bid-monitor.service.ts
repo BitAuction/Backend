@@ -93,8 +93,7 @@ export class BidMonitorService {
       }
     } catch (error) {
       this.logger.warn(
-        `Failed to check bids for auction ${auctionId}:`,
-        error.message,
+        `Failed to check bids for auction ${auctionId}: ${error.message}`,
       );
     }
   }
