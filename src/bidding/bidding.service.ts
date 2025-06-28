@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { FabricService } from '../fabric/fabric.service';
-import { Auction } from 'src/auction/auction.service';
+import { Auction, Bid } from 'src/auction/auction.service';
 
 @Injectable()
 export class BiddingService {
@@ -11,19 +11,19 @@ export class BiddingService {
       org,
       userId,
     );
-    const { contract: timerorcleContract, gateway: timerorcleGateway } =
-      await this.fabricService.getContract(
-        org,
-        userId,
-        undefined,
-        'timeoracle',
-      );
+    // const { contract: timerorcleContract, gateway: timerorcleGateway } =
+    //   await this.fabricService.getContract(
+    //     org,
+    //     userId,
+    //     undefined,
+    //     'timeoracle',
+    //   );
     try {
-      let auctionResult = await contract.evaluateTransaction(
+      const auctionResult = await contract.evaluateTransaction(
         'QueryAuction',
         auctionID,
       );
-      let auction = JSON.parse(auctionResult.toString());
+      const auction = JSON.parse(auctionResult.toString()) as Auction;
 
       const txID = await contract.submitTransaction(
         'Bid',
@@ -31,10 +31,10 @@ export class BiddingService {
         price.toString(),
       );
 
-      const timeResponse = await timerorcleContract.submitTransaction(
-        'GetTimeNtp',
-        txID.toString(),
-      );
+      // const timeResponse = await timerorcleContract.submitTransaction(
+      //   'GetTimeNtp',
+      //   txID.toString(),
+      // );
 
       // Create a transaction for SubmitBid
       const submitBidTx = contract.createTransaction('SubmitBid');
@@ -45,15 +45,12 @@ export class BiddingService {
       await submitBidTx.submit(auctionID, txID.toString());
 
       // Fetch updated auction to get all bids
-      let result = await contract.evaluateTransaction(
-        'QueryAuction',
-        auctionID,
-      );
-
-      let auctionAfterSubmittingBid = JSON.parse(result.toString());
+      const result = await contract.evaluateTransaction('QueryBids', auctionID);
       gateway.disconnect();
-      // console.log('Auction After submitting: ', auctionAfterSubmittingBid.bids);
-      return { bids: auctionAfterSubmittingBid.bids };
+
+      const bidsAfterSubmittingBid = JSON.parse(result.toString()) as Bid[];
+      // console.log('Bids After submitting: ', bidsAfterSubmittingBid);
+      return { bids: bidsAfterSubmittingBid };
     } catch (error) {
       gateway.disconnect();
       throw error;
@@ -66,13 +63,18 @@ export class BiddingService {
       userId,
     );
     try {
-      const result = await contract.evaluateTransaction(
-        'QueryAuction',
-        auctionID,
-      );
+      const result = await contract.evaluateTransaction('QueryBids', auctionID);
       gateway.disconnect();
-      const auction = JSON.parse(result.toString()) as Auction;
-      return { bids: auction.bids };
+
+      // Handle empty or null response
+      const resultString = result.toString().trim();
+      if (!resultString) {
+        return { bids: [] };
+      }
+
+      const auctionBids = JSON.parse(resultString) as Bid[];
+      // console.log('Bids sent: ', auctionBids);
+      return { bids: auctionBids };
     } catch (error) {
       gateway.disconnect();
       throw error;
@@ -85,7 +87,7 @@ export class BiddingService {
       userId,
     );
     try {
-      let result = await contract.evaluateTransaction('GetHb', auctionID);
+      const result = await contract.evaluateTransaction('GetHb', auctionID);
       gateway.disconnect();
       return JSON.parse(result.toString());
     } catch (error) {
